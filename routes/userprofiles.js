@@ -37,6 +37,7 @@ router.post("/login", async (req, res) => {
 
   is_exist.forEach((profile) => {
     let setProfile = {
+      id: profile.id,
       ...profile.data(),
     };
     userData.push(setProfile);
@@ -51,6 +52,14 @@ router.post("/login", async (req, res) => {
       userData: { ...userData },
     });
   }
+});
+
+router.post("/video/:id", async (req, res) => {
+  let id = req.params.id
+  let profileDoc = userProfiles.doc(id.trim());
+  profileDoc.forEach((doc) => {
+    console.log(doc)
+  })
 });
 
 router.put("/:id", async (req, res) => {
