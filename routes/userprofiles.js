@@ -1,4 +1,5 @@
 const express = require("express");
+const { firestore, database } = require("firebase-admin");
 const router = express.Router();
 const db = require("../firebaseconnect");
 const userProfiles = db.collection("profile");
@@ -55,11 +56,36 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/video/:id", async (req, res) => {
-  let id = req.params.id
-  let profileDoc = userProfiles.doc(id.trim());
-  profileDoc.forEach((doc) => {
-    console.log(doc)
-  })
+  let data = {
+    videoUrl: "localhost012",
+    videoDescript: "loremlore loremlore",
+  };
+
+  let id = req.params.id;
+  let userProfile = userProfiles.doc(id.trim());
+  userProfile.get().then((doc) => {
+    if (!doc.data()["videoUrl"]) {
+      userProfile.set({ videoUrl: [] }, { merge: true });
+      userProfile.update({
+        videoUrl: firestore.FieldValue.arrayUnion(data),
+      });
+    } else {
+      userProfile.update({
+        videoUrl: firestore.FieldValue.arrayUnion(data),
+      });
+    }
+    res.send(doc.data());
+  });
+  /* if(! fieldExit) {
+    userProfile.set({ videoUrl: [] }, { merge: true })
+  }
+  userProfile.update({
+    videoUrl: firestore.FieldValue.arrayUnion(data)
+  }) */
+
+  /* userProfile.update({
+    videoUrl:firestore.FieldValue.arrayUnion(data)
+  }) */
 });
 
 router.put("/:id", async (req, res) => {
