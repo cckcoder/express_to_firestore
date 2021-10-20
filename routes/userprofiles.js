@@ -17,6 +17,19 @@ router.get("/", async (req, res) => {
   res.json(profiles);
 });
 
+router.get("/video/:id", async (req, res) => {
+  let id = req.params.id;
+  let userProfile = userProfiles.doc(id.trim());
+
+  userProfile.get().then((doc) => {
+    if (!doc.data()["videoUrl"]) {
+      res.send([]);
+    } else {
+      res.send(doc.data()["videoUrl"]).status(200);
+    }
+  });
+});
+
 router.post("/", async (req, res) => {
   let newProfile = {
     ...req.body.data,
@@ -56,36 +69,26 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/video/:id", async (req, res) => {
-  let data = {
-    videoUrl: "localhost012",
-    videoDescript: "loremlore loremlore",
+  let videoInfo = {
+    ...req.body.data,
   };
 
   let id = req.params.id;
   let userProfile = userProfiles.doc(id.trim());
+
   userProfile.get().then((doc) => {
     if (!doc.data()["videoUrl"]) {
       userProfile.set({ videoUrl: [] }, { merge: true });
       userProfile.update({
-        videoUrl: firestore.FieldValue.arrayUnion(data),
+        videoUrl: firestore.FieldValue.arrayUnion(videoInfo),
       });
     } else {
       userProfile.update({
-        videoUrl: firestore.FieldValue.arrayUnion(data),
+        videoUrl: firestore.FieldValue.arrayUnion(videoInfo),
       });
     }
-    res.send(doc.data());
+    res.send(videoInfo);
   });
-  /* if(! fieldExit) {
-    userProfile.set({ videoUrl: [] }, { merge: true })
-  }
-  userProfile.update({
-    videoUrl: firestore.FieldValue.arrayUnion(data)
-  }) */
-
-  /* userProfile.update({
-    videoUrl:firestore.FieldValue.arrayUnion(data)
-  }) */
 });
 
 router.put("/:id", async (req, res) => {
