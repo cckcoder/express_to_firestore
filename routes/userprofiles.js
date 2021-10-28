@@ -35,6 +35,79 @@ router.get("/video/:id", async (req, res) => {
   });
 });
 
+router.get("/books/:id", async (req, res) => {
+  let id = req.params.id;
+  let userProfile = userProfiles.doc(id.trim());
+
+  if (!id) {
+    res.json([]);
+  }
+
+  userProfile.get().then((doc) => {
+    if (!doc.data()["bookUrl"]) {
+      let bookUrl = [];
+      res.json(bookUrl);
+    } else {
+      res.send(doc.data()["bookUrl"]).status(200);
+    }
+  });
+});
+
+router.get("/article/:id", async (req, res) => {
+  let id = req.params.id;
+  let userProfile = userProfiles.doc(id.trim());
+
+  if (!id) {
+    res.json([]);
+  }
+
+  userProfile.get().then((doc) => {
+    if (!doc.data()["articleUrl"]) {
+      let articleUrl = [];
+      res.json(articleUrl);
+    } else {
+      res.send(doc.data()["articleUrl"]).status(200);
+    }
+  });
+});
+
+router.get("/course/:id", async (req, res) => {
+  let id = req.params.id;
+  let userProfile = userProfiles.doc(id.trim());
+
+  if (!id) {
+    res.json([]);
+  }
+
+  userProfile.get().then((doc) => {
+    if (!doc.data()["courseUrl"]) {
+      let courseUrl = [];
+      res.json(courseUrl);
+    } else {
+      res.send(doc.data()["courseUrl"]).status(200);
+    }
+  });
+});
+
+
+router.get("/podcast/:id", async (req, res) => {
+  let id = req.params.id;
+  let userProfile = userProfiles.doc(id.trim());
+
+  if (!id) {
+    res.json([]);
+  }
+
+  userProfile.get().then((doc) => {
+    if (!doc.data()["podcastUrl"]) {
+      let podcastUrl = [];
+      res.json(podcastUrl);
+    } else {
+      res.send(doc.data()["podcastUrl"]).status(200);
+    }
+  });
+});
+
 router.post("/", async (req, res) => {
   let newProfile = {
     ...req.body.data.formData,
@@ -96,26 +169,79 @@ router.post("/video/:id", async (req, res) => {
   let videoInfo = {
     ...req.body.data,
   };
-  videoInfo.type = "video";
   videoInfo.createAt = new Date().getTime();
 
+  console.log(videoInfo.type)
   let id = req.params.id;
   let userProfile = userProfiles.doc(id.trim());
   let doc = await userProfile.get();
   if (!doc.exists) {
     res.status(404).send("No such document!");
-  } else if (!doc.data()["videoUrl"]) {
-    userProfile.set({ videoUrl: [] }, { merge: true });
-    userProfile.update({
-      videoUrl: firestore.FieldValue.arrayUnion(videoInfo),
-    });
   } else {
-    userProfile.update({
-      videoUrl: firestore.FieldValue.arrayUnion(videoInfo),
-    });
+    switch (videoInfo.type) {
+      case "video":
+        if (!doc.data()["videoUrl"]) {
+          userProfile.set({ videoUrl: [] }, { merge: true });
+          userProfile.update({
+            videoUrl: firestore.FieldValue.arrayUnion(videoInfo),
+          });
+        } else {
+          userProfile.update({
+            videoUrl: firestore.FieldValue.arrayUnion(videoInfo),
+          });
+        }
+        break;
+      case "book":
+        if (!doc.data()["bookUrl"]) {
+          userProfile.set({ bookUrl: [] }, { merge: true });
+          userProfile.update({
+            bookUrl: firestore.FieldValue.arrayUnion(videoInfo),
+          });
+        } else {
+          userProfile.update({
+            bookUrl: firestore.FieldValue.arrayUnion(videoInfo),
+          });
+        }
+        break;
+      case "article":
+        if (!doc.data()["articleUrl"]) {
+          userProfile.set({ articleUrl: [] }, { merge: true });
+          userProfile.update({
+            articleUrl: firestore.FieldValue.arrayUnion(videoInfo),
+          });
+        } else {
+          userProfile.update({
+            articleUrl: firestore.FieldValue.arrayUnion(videoInfo),
+          });
+        }
+        break;
+      case "course":
+        if (!doc.data()["courseUrl"]) {
+          userProfile.set({ courseUrl: [] }, { merge: true });
+          userProfile.update({
+            courseUrl: firestore.FieldValue.arrayUnion(videoInfo),
+          });
+        } else {
+          userProfile.update({
+            courseUrl: firestore.FieldValue.arrayUnion(videoInfo),
+          });
+        }
+        break;
+      case "podcast":
+        if (!doc.data()["podcastUrl"]) {
+          userProfile.set({ podcastUrl: [] }, { merge: true });
+          userProfile.update({
+            podcastUrl: firestore.FieldValue.arrayUnion(videoInfo),
+          });
+        } else {
+          userProfile.update({
+            podcastUrl: firestore.FieldValue.arrayUnion(videoInfo),
+          });
+        }
+        break;
+    }
+    res.send(videoInfo);
   }
-
-  res.send(videoInfo);
 });
 
 router.put("/:id", async (req, res) => {
