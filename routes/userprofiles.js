@@ -21,9 +21,14 @@ router.get("/video/:id", async (req, res) => {
   let id = req.params.id;
   let userProfile = userProfiles.doc(id.trim());
 
+  if (!id) {
+    res.json([]);
+  }
+
   userProfile.get().then((doc) => {
     if (!doc.data()["videoUrl"]) {
-      res.send([]);
+      let videoUrl = [];
+      res.json(videoUrl);
     } else {
       res.send(doc.data()["videoUrl"]).status(200);
     }
@@ -32,11 +37,29 @@ router.get("/video/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   let newProfile = {
-    ...req.body.data,
+    ...req.body.data.formData,
   };
-
+  let newUserProfile = [];
+  console.log("...insert data");
   await userProfiles.doc().set(newProfile);
-  res.json(newProfile);
+  const doc = await userProfiles
+    .where("email", "==", newProfile.email)
+    .where("password", "==", newProfile.password)
+    .get();
+
+  console.log("...setup data");
+  doc.forEach((profile) => {
+    let setProfile = {
+      id: profile.id,
+      ...profile.data(),
+    };
+    newUserProfile.push(setProfile);
+  });
+
+  console.log("...response back");
+  if (newUserProfile) {
+    res.json(newUserProfile).status(200);
+  }
 });
 
 router.post("/login", async (req, res) => {
@@ -69,26 +92,30 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/video/:id", async (req, res) => {
+  console.log("...calling video");
   let videoInfo = {
     ...req.body.data,
   };
+  videoInfo.type = "video";
+  videoInfo.createAt = new Date().getTime();
 
   let id = req.params.id;
   let userProfile = userProfiles.doc(id.trim());
+  let doc = await userProfile.get();
+  if (!doc.exists) {
+    res.status(404).send("No such document!");
+  } else if (!doc.data()["videoUrl"]) {
+    userProfile.set({ videoUrl: [] }, { merge: true });
+    userProfile.update({
+      videoUrl: firestore.FieldValue.arrayUnion(videoInfo),
+    });
+  } else {
+    userProfile.update({
+      videoUrl: firestore.FieldValue.arrayUnion(videoInfo),
+    });
+  }
 
-  userProfile.get().then((doc) => {
-    if (!doc.data()["videoUrl"]) {
-      userProfile.set({ videoUrl: [] }, { merge: true });
-      userProfile.update({
-        videoUrl: firestore.FieldValue.arrayUnion(videoInfo),
-      });
-    } else {
-      userProfile.update({
-        videoUrl: firestore.FieldValue.arrayUnion(videoInfo),
-      });
-    }
-    res.send(videoInfo);
-  });
+  res.send(videoInfo);
 });
 
 router.put("/:id", async (req, res) => {
